@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Book_Logger</string>
+    <string name="addBook">Kitap Ekle</string>
+    <string name="addHistory">Okuma Kaydı Ekle</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

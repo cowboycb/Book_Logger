@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_books"
+        android:checked="true"
+        android:icon="@drawable/ic_book_black_24dp"
+        android:title="Kitaplar" />
+    <item
+        android:id="@+id/action_bookHistory"
+        android:checked="false"
+        android:icon="@mipmap/history"
+        android:title="Kayıtlar" />
+</menu>
