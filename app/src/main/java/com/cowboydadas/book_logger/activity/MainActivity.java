@@ -1,5 +1,7 @@
 package com.cowboydadas.book_logger.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.view.ViewPager;
@@ -29,11 +31,14 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mAddHistory;
     private Map<Integer, Integer> bottomMenuPositions;
 
+    private Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         bottomMenuPositions = new Hashtable<>();
+        context = this;
         init();
     }
 
@@ -108,6 +113,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mAddBook=(FloatingActionButton)findViewById(R.id.floating_action_menu_addBook);
+        mAddBook.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, BookInfoActivity.class);
+                startActivity(intent);
+            }
+        });
+
         mAddHistory=(FloatingActionButton)findViewById(R.id.floating_action_menu_addHistory);
     }
 
