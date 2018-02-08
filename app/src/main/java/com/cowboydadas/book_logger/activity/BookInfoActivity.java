@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
@@ -22,14 +23,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.cowboydadas.book_logger.R;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class BookInfoActivity extends AppCompatActivity {
@@ -42,6 +47,8 @@ public class BookInfoActivity extends AppCompatActivity {
     private EditText editTextAuthor;
     private EditText editTextTotalPage;
     private ImageView imgBookCover;
+    private ImageButton btnChangeBookCover;
+    private String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +71,21 @@ public class BookInfoActivity extends AppCompatActivity {
             }
         });
 
+        btnChangeBookCover = findViewById(R.id.btnChangeBookCover);
+        btnChangeBookCover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onclickImageLoad();
+            }
+        });
+
 
         // Create global configuration and initialize ImageLoader with this config
 //        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
 //        ImageLoader.getInstance().init(config);
     }
 
-    public Intent getPickImageIntent(Context context) {
+    public Intent getPickImageIntent(Context context) throws IOException {
         Intent chooserIntent = null;
 
         List<Intent> intentList = new ArrayList<>();
@@ -80,9 +95,12 @@ public class BookInfoActivity extends AppCompatActivity {
         // Camera Activity
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         takePhotoIntent.putExtra("return-data", true);
-        ContentValues values = new ContentValues();
-        Uri imageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+//        ContentValues values = new ContentValues();
+//        Uri imageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        File photoFile = null;
+        photoFile = createImageFile();
+        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
 
         intentList = addIntentsToList(context, intentList, pickIntent);
         intentList = addIntentsToList(context, intentList, takePhotoIntent);
@@ -107,8 +125,13 @@ public class BookInfoActivity extends AppCompatActivity {
     }
 
     public void onclickImageLoad(){
-        Intent chooserIntent = getPickImageIntent(this);
-        startActivityForResult(chooserIntent, IMAGE_REQUEST);
+        Intent chooserIntent = null;
+        try {
+            chooserIntent = getPickImageIntent(this);
+            startActivityForResult(chooserIntent, IMAGE_REQUEST);
+        } catch (IOException e) {
+            Log.e("INTENT", "ERROR", e);
+        }
     }
 
 
@@ -120,7 +143,12 @@ public class BookInfoActivity extends AppCompatActivity {
             case IMAGE_REQUEST:
                 if (resultCode == Activity.RESULT_OK) {
                     boolean isCamera = (data == null || data.getData() == null);
-                    if (isCamera){
+                    if (isCamera && isCameraPermissionGranted()){
+                        Log.d("CAMERADATA", data.getExtras().toString());
+//                        mImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(mCurrentPhotoPath));
+//                        mImageView.setImageBitmap(mImageBitmap);
+//                        Bitmap photo = (Bitmap) data.getExtras().get("data");
+//                        imageView.setImageBitmap(photo);
                         // TODO to be cont..
 //                        selected_path=getPath(imageUri);
 //                        // Log.i("selected","path"+selected_path);
@@ -129,16 +157,16 @@ public class BookInfoActivity extends AppCompatActivity {
 //                        bitmap =compressImage(imageUri.toString(),816,612);
 //                        imageAttachment_callBack.image_attachment(from, file_name, bitmap,imageUri);
                     }else{
-                        Uri selectedImage = data.getData();
-                        Bitmap bitmap = null;
-                        try {
-                            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                            imgBookCover.setImageBitmap(bitmap);
-                        } catch (FileNotFoundException e) {
-                            Log.e(LOG_TAG, "Exception in image selection : " + e.getMessage());
-                        } catch (IOException e) {
-                            Log.e(LOG_TAG, "Exception in image selection : " + e.getMessage());
-                        }
+//                        Uri selectedImage = data.getData();
+//                        Bitmap bitmap = null;
+//                        try {
+//                            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+//                            imgBookCover.setImageBitmap(bitmap);
+//                        } catch (FileNotFoundException e) {
+//                            Log.e(LOG_TAG, "Exception in image selection : " + e.getMessage());
+//                        } catch (IOException e) {
+//                            Log.e(LOG_TAG, "Exception in image selection : " + e.getMessage());
+//                        }
                     }
 
                     break;
@@ -166,6 +194,23 @@ public class BookInfoActivity extends AppCompatActivity {
             Log.e("EWN", "Out of memory error catched");
         }
         return temp;
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  // prefix
+                ".jpg",         // suffix
+                storageDir      // directory
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
     }
 
     public boolean isCameraPermissionGranted() {
