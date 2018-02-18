@@ -4,17 +4,22 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
@@ -25,13 +30,26 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.cowboydadas.book_logger.R;
+import com.cowboydadas.book_logger.util.BookUtility;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.DexterError;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.PermissionRequestErrorListener;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +58,6 @@ import java.util.List;
 public class BookInfoActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "BookInfoActivity";
-    public static final int IMAGE_REQUEST = 10;
 
     private EditText editTextTitle;
     private EditText editTextDesc;
@@ -49,6 +66,9 @@ public class BookInfoActivity extends AppCompatActivity {
     private ImageView imgBookCover;
     private ImageButton btnChangeBookCover;
     private String mCurrentPhotoPath;
+    private Intent chooserIntent;
+    private static final int REQUEST_CAMERA = 1;
+    private static final int REQUEST_GALERY = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,25 +112,64 @@ public class BookInfoActivity extends AppCompatActivity {
 
         // Galery Activity
         Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        // Camera Activity
-        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePhotoIntent.putExtra("return-data", true);
-//        ContentValues values = new ContentValues();
-//        Uri imageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-        File photoFile = null;
-        photoFile = createImageFile();
-        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-
         intentList = addIntentsToList(context, intentList, pickIntent);
-        intentList = addIntentsToList(context, intentList, takePhotoIntent);
+
+        // Camera Activity
+        Intent takePhotoIntent = createCameraIntent();
+        if (takePhotoIntent != null){
+            intentList = addIntentsToList(context, intentList, takePhotoIntent);
+        }
 
         if (intentList.size() > 0) {
-            chooserIntent = Intent.createChooser(intentList.remove(intentList.size() - 1),"Resim Seçiniz");
+            chooserIntent = Intent.createChooser(intentList.remove(intentList.size() - 1),"Resim Seçiniz" );
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toArray(new Parcelable[]{}));
         }
 
         return chooserIntent;
+    }
+
+    private Intent createCameraIntent() throws IOException {
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // if the device has an camera
+        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
+            takePhotoIntent.putExtra("return-data", true);
+//        ContentValues values = new ContentValues();
+//        Uri imageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+            File photoFile = createImageFile();
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+//                Uri photoURI = Uri.fromFile(photoFile);
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.cowboydadas.book_logger.fileprovider",
+                        photoFile);
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                return takePhotoIntent;
+            }
+        }
+        return null;
+    }
+
+    private File createImageFile() throws IOException {
+        if (BookUtility.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            // Create an image file name
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imageFileName = "JPEG_" + timeStamp + "_";
+            // Save image to the shared image directory - saving image file with this way for large version
+            File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            // Save image to the app directory
+//        File localStorageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File image = File.createTempFile(
+                    imageFileName,  // prefix
+                    ".jpg",         // suffix
+                    storageDir      // directory
+            );
+
+            // Save a file: path for use with ACTION_VIEW intents
+            mCurrentPhotoPath = image.getAbsolutePath();
+            return image;
+        }
+        return null;
     }
 
     private List<Intent> addIntentsToList(Context context, List<Intent> list, Intent intent) {
@@ -125,13 +184,134 @@ public class BookInfoActivity extends AppCompatActivity {
     }
 
     public void onclickImageLoad(){
-        Intent chooserIntent = null;
+        openGaleryCameraChooserDialog();
+    }
+
+    private void openGaleryCameraChooserDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.addPhoto)
+                .setItems(R.array.photoSources, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case 0: requestGaleryPermission(); break;
+                            case 1: requestCameraPermission(); break;
+                        }
+                    }
+                });
+        builder.show();
+    }
+
+    private void requestCameraPermission() {
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        // check if all permissions are granted
+                        if (report.areAllPermissionsGranted()) {
+                            openCamera();
+                        }
+
+                        // check for permanent denial of any permission
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            // TODO Ayarları açmak yerine yeniden izin penceresini açsın
+                            // show alert dialog navigating to Settings
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).
+                withErrorListener(new PermissionRequestErrorListener() {
+                    @Override
+                    public void onError(DexterError error) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.defaultErrorMessage), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .onSameThread().check();
+    }
+
+    private void requestGaleryPermission() {
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        // permission is granted
+                        openGalery();
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        // check for permanent denial of permission
+                        if (response.isPermanentlyDenied()) {
+                            // TODO Ayarları açmak yerine yeniden izin penceresini açsın
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
+
+    private void openGalery() {
+//        Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        startActivityForResult(photoPickerIntent, REQUEST_GALERY);
+    }
+
+    private void openCamera(){
+        // Camera Activity
         try {
-            chooserIntent = getPickImageIntent(this);
-            startActivityForResult(chooserIntent, IMAGE_REQUEST);
+            Intent takePhotoIntent = createCameraIntent();
+            if (takePhotoIntent != null){
+                startActivityForResult(takePhotoIntent, REQUEST_CAMERA);
+            }
         } catch (IOException e) {
-            Log.e("INTENT", "ERROR", e);
+            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
+            Toast.makeText(this, getString(R.string.defaultErrorMessage), Toast.LENGTH_LONG);
         }
+    }
+
+    /**
+     * Showing Alert Dialog with Settings option
+     * Navigates user to app settings
+     * NOTE: Keep proper title and message depending on your app
+     */
+    private void showSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.needPermission));
+        builder.setMessage(getString(R.string.permissionMessage));
+        builder.setPositiveButton(getString(R.string.goToSettings), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                openSettings();
+            }
+        });
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    // navigating user to app settings
+    private void openSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivityForResult(intent, 101);
     }
 
 
@@ -140,11 +320,17 @@ public class BookInfoActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case IMAGE_REQUEST:
+            case REQUEST_CAMERA:
                 if (resultCode == Activity.RESULT_OK) {
-                    boolean isCamera = (data == null || data.getData() == null);
-                    if (isCamera && isCameraPermissionGranted()){
-                        Log.d("CAMERADATA", data.getExtras().toString());
+                    Toast.makeText(this, "CAMERA Seçildi", Toast.LENGTH_LONG);
+                        Bitmap image = BookUtility.getReducedImage(mCurrentPhotoPath, imgBookCover.getWidth(), imgBookCover.getHeight());
+                        imgBookCover.setImageBitmap(image);
+                        // thumbnail image
+//                        Bundle extras = data.getExtras();
+//                        Bitmap imageBitmap = (Bitmap) extras.get("data");
+//                        mImageView.setImageBitmap(imageBitmap);
+
+//                        Log.d("CAMERADATA", data.getExtras().toString());
 //                        mImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(mCurrentPhotoPath));
 //                        mImageView.setImageBitmap(mImageBitmap);
 //                        Bitmap photo = (Bitmap) data.getExtras().get("data");
@@ -156,7 +342,7 @@ public class BookInfoActivity extends AppCompatActivity {
 //                        // Log.i("file","name"+file_name);
 //                        bitmap =compressImage(imageUri.toString(),816,612);
 //                        imageAttachment_callBack.image_attachment(from, file_name, bitmap,imageUri);
-                    }else{
+                    // FROM GALERY
 //                        Uri selectedImage = data.getData();
 //                        Bitmap bitmap = null;
 //                        try {
@@ -167,63 +353,27 @@ public class BookInfoActivity extends AppCompatActivity {
 //                        } catch (IOException e) {
 //                            Log.e(LOG_TAG, "Exception in image selection : " + e.getMessage());
 //                        }
-                    }
 
                     break;
                 } else if (resultCode == Activity.RESULT_CANCELED) {
-                    Log.e(LOG_TAG, "Selecting picture cancelled");
+                    Log.e(LOG_TAG, "Selecting picture from camera cancelled");
+                }
+                break;
+            case REQUEST_GALERY:
+                Toast.makeText(this, "Galeri seçildi", Toast.LENGTH_LONG);
+                if (data != null) {
+                    try {
+                        final Uri imageUri = data.getData();
+                        final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        imgBookCover.setImageBitmap(selectedImage);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show();
+                    }
                 }
                 break;
         }
     }
-    private String encodeImage(Bitmap bitmap) {
-        ByteArrayOutputStream baos=new  ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100, baos);
-        byte [] b=baos.toByteArray();
-        String temp=null;
-        try{
-            System.gc();
-            temp= Base64.encodeToString(b, Base64.DEFAULT);
-        }catch(Exception e){
-            e.printStackTrace();
-        }catch(OutOfMemoryError e){
-            baos=new  ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG,50, baos);
-            b=baos.toByteArray();
-            temp=Base64.encodeToString(b, Base64.DEFAULT);
-            Log.e("EWN", "Out of memory error catched");
-        }
-        return temp;
-    }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
-        return image;
-    }
-
-    public boolean isCameraPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (this.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                return true;
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
-                return false;
-            }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            return true;
-        }
-    }
 }

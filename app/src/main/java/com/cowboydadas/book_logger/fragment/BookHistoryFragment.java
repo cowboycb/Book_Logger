@@ -12,8 +12,8 @@ import android.view.ViewGroup;
 
 import com.cowboydadas.book_logger.adapter.HistoryRecyclerViewAdapter;
 import com.cowboydadas.book_logger.R;
-import com.cowboydadas.book_logger.dummy.DummyContent;
-import com.cowboydadas.book_logger.dummy.DummyContent.DummyItem;
+//import com.cowboydadas.book_logger.dummy.DummyContent;
+//import com.cowboydadas.book_logger.dummy.DummyContent.DummyItem;
 
 /**
  * A fragment representing a list of Items.
@@ -69,7 +69,7 @@ public class BookHistoryFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new HistoryRecyclerViewAdapter(DummyContent.ITEMS ));
+//            recyclerView.setAdapter(new HistoryRecyclerViewAdapter(DummyContent.ITEMS ));
         }
         return view;
     }
@@ -104,6 +104,7 @@ public class BookHistoryFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+//        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction();
     }
 }

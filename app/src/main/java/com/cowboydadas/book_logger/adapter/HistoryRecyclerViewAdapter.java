@@ -8,24 +8,24 @@ import android.widget.TextView;
 
 import com.cowboydadas.book_logger.R;
 import com.cowboydadas.book_logger.fragment.BookHistoryFragment.OnListFragmentInteractionListener;
-import com.cowboydadas.book_logger.dummy.DummyContent.DummyItem;
+//import com.cowboydadas.book_logger.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
+ * {@link RecyclerView.Adapter} that can display a  and makes a call to the
  * specified {@link OnListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
 public class HistoryRecyclerViewAdapter extends RecyclerView.Adapter<HistoryRecyclerViewAdapter.ViewHolder> {
 
-    private final List<DummyItem> mValues;
+//    private final List<DummyItem> mValues;
 //    private final OnListFragmentInteractionListener mListener;
 
-    public HistoryRecyclerViewAdapter(List<DummyItem> items) {
-        mValues = items;
-//        mListener = listener;
-    }
+//    public HistoryRecyclerViewAdapter(List<DummyItem> items) {
+//        mValues = items;
+////        mListener = listener;
+//    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -36,9 +36,9 @@ public class HistoryRecyclerViewAdapter extends RecyclerView.Adapter<HistoryRecy
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+//        holder.mItem = mValues.get(position);
+//        holder.mIdView.setText(mValues.get(position).id);
+//        holder.mContentView.setText(mValues.get(position).content);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,14 +54,15 @@ public class HistoryRecyclerViewAdapter extends RecyclerView.Adapter<HistoryRecy
 
     @Override
     public int getItemCount() {
-        return mValues.size();
+        return 0;
+//        return mValues.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mIdView;
         public final TextView mContentView;
-        public DummyItem mItem;
+//        public DummyItem mItem;
 
         public ViewHolder(View view) {
             super(view);

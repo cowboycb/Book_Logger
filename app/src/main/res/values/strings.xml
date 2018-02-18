@@ -10,9 +10,19 @@
 
     <string name="selectImage">Resim Seçiniz</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_book_info">BookInfoActivity</string>
-    <string name="fromGallery">Galeriden</string>
-    <string name="fromCamera">Kameradan</string>
+    <string name="title_activity_book_info">Kitap Bilgisi</string>
+    <string name="addPhoto">Fotoğraf Ekleyin</string>
+    <array name="photoSources">
+        <item>Galeriden</item>
+        <item>Kameradan</item>
+    </array>
+    <string name="needPermission">İzin Gerekli</string>
+    <string name="permissionMessage">
+        Bu uygulamanın istediğiniz özelliği kullanabilmesi için izninize ihtiyacı var. Ayarlardan izin verebilirsiniz.
+    </string>
+    <string name="goToSettings">Ayarlara Git</string>
+
+    <string name="ok">Tamam</string>
+    <string name="cancel">İptal</string>
+    <string name="defaultErrorMessage">Bir hata oluştu! Lütfen uygulamayı kapatıp açarak tekrar deneyin.</string>
 </resources>
