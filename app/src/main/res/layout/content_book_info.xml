@@ -10,9 +10,12 @@
 
     <ImageView
         android:id="@+id/imgBookCover"
-        android:layout_width="250dp"
-        android:layout_height="200dp"
+        android:layout_width="@dimen/img_width"
+        android:layout_height="@dimen/img_height"
 
+        android:layout_marginBottom="228dp"
+        android:contentDescription="@string/bookCover"
+        app:layout_constraintBottom_toTopOf="@+id/input_layout_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -104,6 +107,14 @@
             tools:layout_editor_absoluteY="114dp" />
     </android.support.design.widget.TextInputLayout>
 
+    <Button
+        android:id="@+id/btnSaveBook"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="@string/save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_layout_totalpage" />
 
 
 </android.support.constraint.ConstraintLayout>

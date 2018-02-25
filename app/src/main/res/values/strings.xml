@@ -25,4 +25,8 @@
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>
     <string name="defaultErrorMessage">Bir hata oluştu! Lütfen uygulamayı kapatıp açarak tekrar deneyin.</string>
+    <string name="bookCover">Kitap Kapağı</string>
+    <string name="save">Kaydet</string>
+
+    <string name="successCreateBookMessage">Kitap Başarıyla Eklendi</string>
 </resources>

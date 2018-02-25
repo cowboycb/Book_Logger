@@ -1,5 +1,6 @@
 package com.cowboydadas.book_logger.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -10,17 +11,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import com.cowboydadas.book_logger.db.BookLoggerDbHelper;
 import com.cowboydadas.book_logger.fragment.BookFragment;
 import com.cowboydadas.book_logger.fragment.BookHistoryFragment;
 import com.cowboydadas.book_logger.R;
-import com.cowboydadas.book_logger.util.ViewPagerAdapter;
+import com.cowboydadas.book_logger.adapter.ViewPagerAdapter;
 import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.Hashtable;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final int REQUEST_FROM_BOOK_ACTIVITY = 1;
 
     private BookFragment bookFragment;
     private BookHistoryFragment bookHistoryFragment;
@@ -32,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private Map<Integer, Integer> bottomMenuPositions;
 
     private Context context;
+    private BookLoggerDbHelper dbHelper;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +47,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         bottomMenuPositions = new Hashtable<>();
         context = this;
+        dbHelper = BookLoggerDbHelper.getInstance(getApplicationContext());
         init();
     }
 
-    private void init(){
-        viewPager = (ViewPager) findViewById(R.id.viewpager);
+    private void init() {
+        viewPager = findViewById(R.id.viewpager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         bookHistoryFragment = new BookHistoryFragment();
         adapter.addFragment(bookHistoryFragment);
@@ -57,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         bottomMenuPositions.put(R.id.action_books, 1);
 
         //Initializing the bottomNavigationView
-        final BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.bottom_navigation);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnClickListener(new BottomNavigationView.OnClickListener() {
 
@@ -96,14 +105,9 @@ public class MainActivity extends AppCompatActivity {
                 if (prevMenuItem != null) {
                     prevMenuItem.setChecked(false);
                 }
-//                else
-//                {
-                    bottomNavigationView.getMenu().getItem(position).setChecked(true);
-//                }
-                Log.d("page", "onPageSelected: "+position);
-//                bottomNavigationView.getMenu().getItem(position).setChecked(true);
+                bottomNavigationView.getMenu().getItem(position).setChecked(true);
+                Log.d("page", "onPageSelected: " + position);
                 prevMenuItem = bottomNavigationView.getMenu().getItem(position);
-
             }
 
             @Override
@@ -112,17 +116,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mAddBook=(FloatingActionButton)findViewById(R.id.floating_action_menu_addBook);
+        final FloatingActionMenu main_fab_menu = findViewById(R.id.main_fab_menu);
+
+        mAddBook = findViewById(R.id.floating_action_menu_addBook);
         mAddBook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                main_fab_menu.close(true);
                 Intent intent = new Intent(context, BookInfoActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_FROM_BOOK_ACTIVITY);
+
             }
         });
 
-        mAddHistory=(FloatingActionButton)findViewById(R.id.floating_action_menu_addHistory);
+        mAddHistory = findViewById(R.id.floating_action_menu_addHistory);
+        mAddHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                main_fab_menu.close(true);
+//                Intent intent = new Intent(context, BookInfoActivity.class);
+//                startActivityForResult(intent, REQUEST_FROM_BOOK_ACTIVITY);
+
+            }
+        });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQUEST_FROM_BOOK_ACTIVITY:
+                if (resultCode == Activity.RESULT_OK) {
+                    bottomNavigationView.getMenu().getItem(bottomMenuPositions.get(R.id.action_books)).setChecked(true);
+                    refreshBookList();
+                }
+                break;
+        }
+    }
 
+    private void refreshBookList() {
+        // TODO Kitap listesi yenilenecek
+        Toast.makeText(this, "Main deyiz", Toast.LENGTH_LONG).show();
+    }
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/list_row_selector"
+    android:padding="8dp" >
+
+    <ImageView
+        android:id="@+id/imgBookThumbnail"
+        android:layout_width="@dimen/thumbnail_width"
+        android:layout_height="@dimen/thumbnail_height"
+        android:layout_marginBottom="228dp"
+        android:contentDescription="@string/bookCover" />
+
+    <TextView
+        android:id="@+id/txtBookName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imgBookThumbnail"
+        android:layout_toRightOf="@+id/imgBookThumbnail"
+        android:textSize="17dip"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtBookAuthor"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtBookName"
+        android:layout_marginTop="1dip"
+        android:layout_toRightOf="@+id/imgBookThumbnail" />
+
+    <TextView
+        android:id="@+id/txtFullCurrentPage"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtBookAuthor"
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/imgBookThumbnail"
+        android:textColor="@color/genre" />
+
+</RelativeLayout>

@@ -8,7 +8,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.cowboydadas.book_logger.model.Book;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -17,8 +20,10 @@ import java.util.List;
 
 public class BookLoggerDbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "BookLogger.db";
+    private static BookLoggerDbHelper sInstance;
+
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "BookLogger.db";
 
 
     private static final String SQL_CREATE_TABLE_BOOK =
@@ -43,7 +48,17 @@ public class BookLoggerDbHelper extends SQLiteOpenHelper {
                     BookLoggerContract.BookHistory.COLUMN_NAME_IMONTH + " INTEGER," +
                     BookLoggerContract.BookHistory.COLUMN_NAME_IYEAR + " INTEGER)";
 
-    public BookLoggerDbHelper(Context context) {
+    public static synchronized BookLoggerDbHelper getInstance(Context context) {
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (sInstance == null) {
+            sInstance = new BookLoggerDbHelper(context.getApplicationContext());
+        }
+        return sInstance;
+    }
+
+    private BookLoggerDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -73,7 +88,9 @@ public class BookLoggerDbHelper extends SQLiteOpenHelper {
         values.put(BookLoggerContract.Book.COLUMN_NAME_CURRENTPAGE, book.getCurrentPage());
         values.put(BookLoggerContract.Book.COLUMN_NAME_DESCRIPTION, book.getDescription());
         values.put(BookLoggerContract.Book.COLUMN_NAME_TOTALPAGE, book.getTotalPage());
-        values.put(BookLoggerContract.Book.COLUMN_NAME_IDATE, book.getIdate());
+        DateFormat dfDate = new SimpleDateFormat("yyyyMMddHHmmss");
+        String date=dfDate.format(Calendar.getInstance().getTime());
+        values.put(BookLoggerContract.Book.COLUMN_NAME_IDATE, date);
 
         long newRowId = db.insert(BookLoggerContract.Book.TABLE_NAME, null, values);
         book.setId(newRowId);

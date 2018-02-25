@@ -28,6 +28,8 @@ import java.io.File;
 
 public class BookUtility {
 
+    public static final String LOG_TAG = "BOOK_LOGGER";
+
     public static boolean isPermissionGranted(final @NonNull Activity activity, String permissionID){
         if (Build.VERSION.SDK_INT >= 23) {
             if (activity.checkSelfPermission(permissionID) == PackageManager.PERMISSION_GRANTED) {
