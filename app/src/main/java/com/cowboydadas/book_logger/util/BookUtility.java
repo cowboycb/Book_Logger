@@ -1,6 +1,5 @@
 package com.cowboydadas.book_logger.util;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,12 +11,11 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.cowboydadas.book_logger.R;
+import com.google.gson.Gson;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -116,5 +114,25 @@ public class BookUtility {
             Log.e("EWN", "Out of memory error catched");
         }
         return temp;
+    }
+
+    public static boolean isNullOrEmpty(Object o){
+        return o == null || o.toString().trim().isEmpty();
+    }
+
+    public static String convertObject2JSON(Object o){
+        if (o != null) {
+            Gson g = new Gson();
+            return g.toJson(o);
+        }
+        return "";
+    }
+
+    public static Object convertJSON2Object(String json, Class c){
+        if (!isNullOrEmpty(json)) {
+            Gson g = new Gson();
+            return g.fromJson(json, c);
+        }
+        return null;
     }
 }

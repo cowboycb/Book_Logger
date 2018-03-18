@@ -29,4 +29,15 @@
     <string name="save">Kaydet</string>
 
     <string name="successCreateBookMessage">Kitap Başarıyla Eklendi</string>
+    <string name="successUpdateBookMessage">Kitap Başarıyla Güncellendi</string>
+    <string name="title_activity_book_process">BookProcessActivity</string>
+
+    <string name="currentPage">Bulunduğunuz Sayfa</string>
+    <string name="pleaseSelectBook">Lütfen bir kitap seçiniz</string>
+    <string name="bookSelection">Kitap Seçimi</string>
+
+    <array name="book_menu">
+        <item>Güncelle</item>
+        <item>Okuma Kaydı Ekle</item>
+    </array>
 </resources>
