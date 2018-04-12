@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Book_Logger</string>
+    <string name="app_name">Kitap Okuma Takip</string>
     <string name="addBook">Kitap Ekle</string>
     <string name="addHistory">Okuma Kaydı Ekle</string>
 
@@ -30,7 +30,7 @@
 
     <string name="successCreateBookMessage">Kitap Başarıyla Eklendi</string>
     <string name="successUpdateBookMessage">Kitap Başarıyla Güncellendi</string>
-    <string name="title_activity_book_process">BookProcessActivity</string>
+    <string name="title_activity_book_process">Kitap Takibi</string>
 
     <string name="currentPage">Bulunduğunuz Sayfa</string>
     <string name="pleaseSelectBook">Lütfen bir kitap seçiniz</string>
@@ -38,6 +38,7 @@
 
     <array name="book_menu">
         <item>Güncelle</item>
-        <item>Okuma Kaydı Ekle</item>
+        <item>Okuma Kaydı Ekle
+        </item>
     </array>
 </resources>

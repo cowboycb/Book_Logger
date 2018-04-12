@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements BookFragment.OnBo
     private void init() {
         viewPager = findViewById(R.id.viewpager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+
         bookHistoryFragment = new BookHistoryFragment();
         adapter.addFragment(bookHistoryFragment);
 
@@ -178,6 +179,11 @@ public class MainActivity extends AppCompatActivity implements BookFragment.OnBo
                 if (resultCode == Activity.RESULT_OK) {
                     bottomNavigationView.getMenu().getItem(bottomMenuPositions.get(R.id.action_books)).setChecked(true);
                     refreshBookList();
+                }
+                break;
+            case REQUEST_FROM_BOOKHISTORY_ACTIVITY:
+                if (resultCode == Activity.RESULT_OK) {
+
                 }
                 break;
         }

@@ -1,5 +1,6 @@
 package com.cowboydadas.book_logger;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +33,7 @@ public class BookProcessActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         etextCurrentPage = findViewById(R.id.editTextCurrentPage);
-        ImageView imgBookCover = findViewById(R.id.imgBookCover);
+        ImageView imgBookCover = findViewById(R.id.imgBookCover4Process);
         TextView txtBookTitle = findViewById(R.id.txtBookTitle);
         TextView txtBookTotalPage = findViewById(R.id.txtTotalPage);
         Bundle bundle = getIntent().getExtras();
@@ -41,8 +42,9 @@ public class BookProcessActivity extends AppCompatActivity {
             activeBook = (Book) BookUtility.convertJSON2Object(bookJson, Book.class);
             txtBookTitle.setText(String.valueOf(activeBook.getTitle()));
             txtBookTotalPage.setText(String.valueOf(activeBook.getTotalPage()));
-            if (BookUtility.isNullOrEmpty(activeBook.getCover())) {
+            if (!BookUtility.isNullOrEmpty(activeBook.getCover())) {
 //                Picasso.with(this).cancelRequest(imgBookCover);
+                Picasso.with(this).setLoggingEnabled(true);
                 Picasso.with(this)
                         .load("file:" + activeBook.getCover())
                         .resizeDimen(R.dimen.img_width, R.dimen.img_height)
@@ -70,12 +72,18 @@ public class BookProcessActivity extends AppCompatActivity {
                 }else {
                     long id = BookLoggerDbHelper.getInstance(getApplicationContext()).insertBookProcess(activeBook);
                     Snackbar.make(getCurrentFocus(), "Kayıt başarıyla eklendi", Snackbar.LENGTH_SHORT);
+                    backToParentActivity();
                 }
             } catch (BookHistoryException e) {
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    private void backToParentActivity(){
+        setResult(Activity.RESULT_OK);
+        finish();
     }
 
 }
