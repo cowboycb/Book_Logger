@@ -25,7 +25,7 @@
         fab:menu_animationDelayPerItem="55"
         fab:menu_backgroundColor="@android:color/transparent"
         fab:menu_buttonSpacing="0dp"
-        fab:menu_colorNormal="@color/colorPrimary"
+        fab:menu_colorNormal="@color/colorMor"
         fab:menu_colorPressed="#dc4b3f"
         fab:menu_colorRipple="#99d4d4d4"
         fab:menu_fab_size="normal"
@@ -56,6 +56,7 @@
             android:id="@+id/floating_action_menu_addBook"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@color/colorFabItem"
             android:src="@drawable/ic_book_black_24dp"
             fab:fab_label="@string/addBook"
             fab:fab_size="mini" />
@@ -64,6 +65,7 @@
             android:id="@+id/floating_action_menu_addHistory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@color/colorFabItem"
             android:src="@drawable/ic_restore_black_24dp"
             fab:fab_label="@string/addHistory"
             fab:fab_size="mini" />

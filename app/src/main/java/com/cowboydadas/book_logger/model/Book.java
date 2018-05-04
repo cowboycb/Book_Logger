@@ -1,10 +1,12 @@
 package com.cowboydadas.book_logger.model;
 
+import java.io.Serializable;
+
 /**
  * Created by admin on 8.01.2018.
  */
 
-public class Book {
+public class Book implements Serializable{
 
     private Long id;
     private String title;

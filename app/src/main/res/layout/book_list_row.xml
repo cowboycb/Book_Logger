@@ -9,7 +9,7 @@
         android:id="@+id/imgBookThumbnail"
         android:layout_width="@dimen/thumbnail_width"
         android:layout_height="@dimen/thumbnail_height"
-        android:layout_marginBottom="228dp"
+        android:paddingRight="10dp"
         android:contentDescription="@string/bookCover" />
 
     <TextView
@@ -37,5 +37,12 @@
         android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/imgBookThumbnail"
         android:textColor="@color/genre" />
+
+    <!-- Rightend Arrow -->
+    <ImageView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_right"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"/>
 
 </RelativeLayout>

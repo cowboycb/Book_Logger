@@ -6,7 +6,8 @@ package com.cowboydadas.book_logger.model;
 
 public class BookHistory {
 
-    private Integer bookId;
+    private Long id;
+    private Long bookId;
     private Integer readPage;
     private Integer remainingPage;
     private Integer iday;
@@ -16,11 +17,11 @@ public class BookHistory {
     public BookHistory() {
     }
 
-    public Integer getBookId() {
+    public Long getBookId() {
         return bookId;
     }
 
-    public void setBookId(Integer bookId) {
+    public void setBookId(Long bookId) {
         this.bookId = bookId;
     }
 
@@ -62,5 +63,13 @@ public class BookHistory {
 
     public void setIyear(Integer iyear) {
         this.iyear = iyear;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

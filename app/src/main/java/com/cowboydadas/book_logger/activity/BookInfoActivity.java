@@ -2,8 +2,10 @@ package com.cowboydadas.book_logger.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -34,6 +36,7 @@ import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +47,7 @@ import java.util.Date;
 
 public class BookInfoActivity extends AppCompatActivity {
 
+    public static final String BOOK_INFO = "BookInfoActivity_";
     private EditText editTextTitle;
     private EditText editTextDesc;
     private EditText editTextAuthor;
@@ -54,6 +58,8 @@ public class BookInfoActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 1;
     private static final int REQUEST_GALERY = 2;
     private BookLoggerDbHelper dbHelper;
+
+    private Book activeBook ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +102,18 @@ public class BookInfoActivity extends AppCompatActivity {
         btnSaveBook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Long id = dbHelper.createBook(getBookFromView());
-                if (id>0){
-                    Snackbar snackbar = Snackbar.make(view, R.string.successCreateBookMessage, Snackbar.LENGTH_SHORT);
+                Long id = null;
+                int count = -1;
+                String msj = getString(R.string.successCreateBookMessage);
+                if (activeBook == null){
+                    id = dbHelper.createBook(getBookFromView());
+                }else{
+                    msj = getString(R.string.successUpdateBookMessage);
+                    count = dbHelper.updateBook(getBookFromView());
+                }
+
+                if ((id != null && id > 0) || count > 0){
+                    Snackbar snackbar = Snackbar.make(view, msj, Snackbar.LENGTH_SHORT);
                     snackbar.addCallback(new Snackbar.Callback() {
 
                         @Override
@@ -111,10 +126,29 @@ public class BookInfoActivity extends AppCompatActivity {
                         }
                     });
                     snackbar.show();
-
                 }
             }
         });
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null && bundle.containsKey(BOOK_INFO)) {
+            String bookJson = bundle.getString(BOOK_INFO);
+            activeBook = (Book) BookUtility.convertJSON2Object(bookJson, Book.class);
+
+            editTextTitle.setText(activeBook.getTitle());
+            editTextDesc.setText(activeBook.getDescription());
+            editTextAuthor.setText(activeBook.getAuthor());
+            editTextTotalPage.setText(String.valueOf(activeBook.getTotalPage()));
+
+            if (BookUtility.isNullOrEmpty(activeBook.getCover())) {
+                Picasso.with(this).cancelRequest(imgBookCover);
+                Picasso.with(this)
+                        .load("file:" + activeBook.getCover())
+                        .resizeDimen(R.dimen.img_width, R.dimen.img_height)
+                        .centerCrop()
+                        .into(imgBookCover);
+            }
+        }
 
         // Create global configuration and initialize ImageLoader with this config
 //        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
@@ -127,15 +161,17 @@ public class BookInfoActivity extends AppCompatActivity {
     }
 
     private Book getBookFromView() {
-        Book b = new Book();
-        b.setAuthor(editTextAuthor.getText().toString());
-        b.setTitle(editTextTitle.getText().toString());
-        b.setDescription(editTextDesc.getText().toString());
-        b.setTotalPage(Integer.valueOf(editTextTotalPage.getText().toString()));
-        if (imgBookCover.getTag() != null) {
-            b.setCover(imgBookCover.getTag().toString());
+        if (activeBook == null) {
+            activeBook = new Book();
         }
-        return b;
+        activeBook.setAuthor(editTextAuthor.getText().toString());
+        activeBook.setTitle(editTextTitle.getText().toString());
+        activeBook.setDescription(editTextDesc.getText().toString());
+        activeBook.setTotalPage(Integer.valueOf(editTextTotalPage.getText().toString()));
+        if (imgBookCover.getTag() != null) {
+            activeBook.setCover(imgBookCover.getTag().toString());
+        }
+        return activeBook;
     }
 
     private Intent createCameraIntent() throws IOException {
@@ -343,7 +379,7 @@ public class BookInfoActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_CAMERA:
                 if (resultCode == Activity.RESULT_OK) {
-                    Log.d("BOOK", data.toString());
+//                    Log.d("BOOK", data.toString());
                     Log.d(BookUtility.LOG_TAG, "Camera is selected");
                         Bitmap image = BookUtility.getReducedImage(mCurrentPhotoPath, imgBookCover.getWidth(), imgBookCover.getHeight());
                         imgBookCover.setImageBitmap(image);
@@ -365,12 +401,31 @@ public class BookInfoActivity extends AppCompatActivity {
                         final InputStream imageStream = getContentResolver().openInputStream(imageUri);
                         final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                         imgBookCover.setImageBitmap(selectedImage);
-                        imgBookCover.setTag(imageUri.getPath());
+                        imgBookCover.setTag(getRealPathFromURI(this, imageUri));
                     } catch (FileNotFoundException e) {
                         Log.e(BookUtility.LOG_TAG, "Exception", e);
                     }
                 }
                 break;
+        }
+    }
+
+    public String getRealPathFromURI(Context context, Uri contentUri) {
+
+        Cursor cursor = null;
+
+        try {
+
+            String[] proj = {MediaStore.Images.Media.DATA};
+
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 

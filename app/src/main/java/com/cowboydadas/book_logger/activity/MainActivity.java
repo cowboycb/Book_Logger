@@ -3,30 +3,36 @@ package com.cowboydadas.book_logger.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.cowboydadas.book_logger.BookProcessActivity;
+import com.cowboydadas.book_logger.R;
+import com.cowboydadas.book_logger.adapter.ViewPagerAdapter;
 import com.cowboydadas.book_logger.db.BookLoggerDbHelper;
 import com.cowboydadas.book_logger.fragment.BookFragment;
 import com.cowboydadas.book_logger.fragment.BookHistoryFragment;
-import com.cowboydadas.book_logger.R;
-import com.cowboydadas.book_logger.adapter.ViewPagerAdapter;
+import com.cowboydadas.book_logger.model.Book;
+import com.cowboydadas.book_logger.util.BookUtility;
+import com.cowboydadas.book_logger.util.SpinnerDialog;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BookFragment.OnBookFragmentInteractionListener {
 
-    public static final int REQUEST_FROM_BOOK_ACTIVITY = 1;
+    public static final int REQUEST_FROM_BOOKINFO_ACTIVITY = 1;
+    public static final int REQUEST_FROM_BOOKHISTORY_ACTIVITY = 2;
 
     private BookFragment bookFragment;
     private BookHistoryFragment bookHistoryFragment;
@@ -54,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         viewPager = findViewById(R.id.viewpager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+
         bookHistoryFragment = new BookHistoryFragment();
         adapter.addFragment(bookHistoryFragment);
 
@@ -124,8 +131,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 main_fab_menu.close(true);
                 Intent intent = new Intent(context, BookInfoActivity.class);
-                startActivityForResult(intent, REQUEST_FROM_BOOK_ACTIVITY);
-
+                startActivityForResult(intent, REQUEST_FROM_BOOKINFO_ACTIVITY);
             }
         });
 
@@ -134,28 +140,62 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 main_fab_menu.close(true);
+                openSelectBookDialog();
+
+
+
 //                Intent intent = new Intent(context, BookInfoActivity.class);
-//                startActivityForResult(intent, REQUEST_FROM_BOOK_ACTIVITY);
+//                startActivityForResult(intent, REQUEST_FROM_BOOKINFO_ACTIVITY);
 
             }
         });
+    }
+
+    private void openSelectBookDialog() {
+        List<Book> listBook = BookLoggerDbHelper.getInstance(this).getBookList(null);
+        SpinnerDialog mSpinnerDialog = SpinnerDialog.newInstance(this, listBook, new SpinnerDialog.DialogListener<Book>() {
+
+            @Override
+            public void ready(Book book) {
+                Intent intent = new Intent(getApplicationContext(), BookProcessActivity.class);
+                intent.putExtra(BookProcessActivity.BOOK_PROCESS, BookUtility.convertObject2JSON(book));
+                startActivityForResult(intent, MainActivity.REQUEST_FROM_BOOKHISTORY_ACTIVITY);
+            }
+
+            @Override
+            public void cancelled() {
+
+            }
+        });
+        mSpinnerDialog.setDialogTitle(R.string.bookSelection);
+        mSpinnerDialog.show(getSupportFragmentManager(), "spinnerDialog");
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case REQUEST_FROM_BOOK_ACTIVITY:
+            case REQUEST_FROM_BOOKINFO_ACTIVITY:
                 if (resultCode == Activity.RESULT_OK) {
                     bottomNavigationView.getMenu().getItem(bottomMenuPositions.get(R.id.action_books)).setChecked(true);
                     refreshBookList();
+                }
+                break;
+            case REQUEST_FROM_BOOKHISTORY_ACTIVITY:
+                if (resultCode == Activity.RESULT_OK) {
+
                 }
                 break;
         }
     }
 
     private void refreshBookList() {
-        // TODO Kitap listesi yenilenecek
         Toast.makeText(this, "Main deyiz", Toast.LENGTH_LONG).show();
+        bookFragment.refreshListAdapter();
+    }
+
+    @Override
+    public void onActivity4Result(int requestCode, int resultCode, Intent intent) {
+        onActivityResult(requestCode, resultCode, intent);
     }
 }

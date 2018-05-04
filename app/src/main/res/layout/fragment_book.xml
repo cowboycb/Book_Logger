@@ -5,7 +5,7 @@
     tools:context="com.cowboydadas.book_logger.fragment.BookFragment">
 
     <ListView
-        android:id="@+id/list"
+        android:id="@+id/listBook"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:divider="@color/list_divider"
